@@ -35,6 +35,12 @@
 ### POST_TITLE
 - 投稿時タイトル
 - default "Today's 334 Top 10"
+### MATCHER
+- 取得対象となる文字列を変更する場合に使います
+- default 
+```js
+/(33-?4|:hanshin:)/
+```
  
 ## LICENCE
 このプロジェクトはMPL-2.0を採用しています。
