@@ -7,15 +7,20 @@ import retry from 'async-retry'
 process.env.TZ = 'Asia/Tokyo'
 require('dotenv').config()
 
+// 設定など
 const today = new Date()
-const recordTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 3, 34, 0, 0)
+const recordTimeHour = Number(process.env?.RECORD_HOUR) || 3
+const recordTimeSEC = Number(process.env?.RECORD_MINUTE) || 34
+const recordTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), recordTimeHour, recordTimeSEC, 0, 0)
 
-let io:Server = {
-  origin: "https://misskey.io",
-  credential: process.env.IO_TOKEN || ''
+const postTitle = process.env?.POST_TITLE || `Today's 334 Top 10`
+
+let server:Server = {
+  origin: process.env?.SERVER_ORIGIN || "https://misskey.io",
+  credential: process.env.SERVER_TOKEN || ''
 }
 
-const client = new Misskey.api.APIClient(io)
+const client = new Misskey.api.APIClient(server)
 let notes: Array<Note> = []
 
 let postNote = async (text: string) => { 
@@ -55,7 +60,7 @@ const showRanking = (ranked: Array<RankElement>, all: number) => {
   let rankUserText:string = ranked.filter(el => el.rank <= 10).map(el => 
     `${Constants.rankEmojis[el.rank - 1]} @${el.username} +${el.formattedDiff(recordTime)}`
   ).join("\n")
-  return `Today's 334 Top 10\n\n${rankUserText}\n\n有効記録数：${ranked.length}\nフライング記録数：${all - ranked.length}`
+  return `${postTitle}\n\n${rankUserText}\n\n有効記録数：${ranked.length}\nフライング記録数：${all - ranked.length}`
 }
 
 const getLastNote = (notes:Array<Note>) => notes.slice(-1)[0];
@@ -100,15 +105,7 @@ const getNotes = async ():Promise<Array<Note>> => {
   let ranking = createRanks(recordedNotes)
   let text = showRanking(ranking, recordedNotes.length)
   console.log(text)
-  postNote(text)
+  if (!process.env?.POST_DISABLED) {
+    postNote(text)
+  }
 })()
-
-// 終了時
-process.on("exit", async exitCode => {
-  
-})
-
-// ^C
-process.on("SIGINT", ()=> {
-  process.exit(0)
-})
