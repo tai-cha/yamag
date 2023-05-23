@@ -53,7 +53,7 @@ const createRanks = (notes: Array<Note>):Array<RankElement> => {
 
 const showRanking = (ranked: Array<RankElement>, all: number) => {
   let rankUserText:string = ranked.filter(el => el.rank <= 10).map(el => 
-    `${Constants.rankEmojis[el.rank - 1]} @/${el.username} +${el.formattedDiff(recordTime)}`
+    `${Constants.rankEmojis[el.rank - 1]} @${el.username} +${el.formattedDiff(recordTime)}`
   ).join("\n")
   return `Today's 334 Top 10\n\n${rankUserText}\n\n有効記録数：${ranked.length}\nフライング記録数：${all - ranked.length}`
 }
