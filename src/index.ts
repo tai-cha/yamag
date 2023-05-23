@@ -1,14 +1,14 @@
 import * as Misskey from 'misskey-js'
-import { Server, Note, Record } from './@types';
-import { RankElement, usernameWithHost, isRecordInRange } from './utils';
-import { Constants } from './utils/constants';
-const retry = require('async-retry')
+import { Server, Note, Record } from './@types'
+import { RankElement, usernameWithHost, isRecordInRange } from './utils'
+import { Constants } from './utils/constants'
+import retry from 'async-retry'
 
 process.env.TZ = 'Asia/Tokyo'
 require('dotenv').config()
 
-const today = new Date();
-const recordTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 3, 34, 0, 0);
+const today = new Date()
+const recordTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 3, 34, 0, 0)
 
 let io:Server = {
   origin: "https://misskey.io",
@@ -53,7 +53,7 @@ const createRanks = (notes: Array<Note>):Array<RankElement> => {
 
 const showRanking = (ranked: Array<RankElement>, all: number) => {
   let rankUserText:string = ranked.filter(el => el.rank <= 10).map(el => 
-    `${Constants.rankEmojis[el.rank - 1]} @${el.username} +${el.formattedDiff(recordTime)}`
+    `${Constants.rankEmojis[el.rank - 1]} @/${el.username} +${el.formattedDiff(recordTime)}`
   ).join("\n")
   return `Today's 334 Top 10\n\n${rankUserText}\n\n有効記録数：${ranked.length}\nフライング記録数：${all - ranked.length}`
 }
