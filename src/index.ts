@@ -101,7 +101,9 @@ const getNotes = async ():Promise<Array<Note>> => {
   notes = await getNotes()
   console.log("getNotes end")
 
-  let recordedNotes = notes.filter(note => note.text?.match(/(33-?4|:hanshin:)/))
+  let matcher = process.env.MATCHER || /(33-?4|:hanshin:)/
+  let regexp = new RegExp(matcher)
+  let recordedNotes = notes.filter(note => note.text?.match(regexp))
   let ranking = createRanks(recordedNotes)
   let text = showRanking(ranking, recordedNotes.length)
   console.log(text)
