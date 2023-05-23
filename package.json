@@ -4,15 +4,15 @@
   "description": "Yet Another Misskey Accuracy Game app",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node ./src/index.ts",
-    "dev": "dotenv -e .env.development ts-node ./src/index.ts",
+    "start": "pnpx ts-node ./src/index.ts",
+    "dev": "dotenv -e .env.development pnpx ts-node ./src/index.ts",
     "build": "tsc",
     "prod": "node ./dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
-  "license": "MPL2.0",
+  "license": "MPL-2.0",
   "devDependencies": {
     "@types/async-retry": "^1.4.5",
     "@types/node": "^20.2.3"
