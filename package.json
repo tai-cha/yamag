@@ -4,8 +4,8 @@
   "description": "Yet Another Misskey Accuracy Game app",
   "main": "index.js",
   "scripts": {
-    "start": "pnpx ts-node ./src/index.ts",
-    "dev": "dotenv -e .env.development pnpx ts-node ./src/index.ts",
+    "start": "ts-node ./src/index.ts",
+    "dev": "dotenv -e .env.development ts-node ./src/index.ts",
     "build": "tsc",
     "prod": "node ./dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
