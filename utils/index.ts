@@ -1,0 +1,45 @@
+import { Record } from "../@types"
+import { entities } from "misskey-js";
+import { Constants } from "./constants";
+import retry from 'async-retry'
+
+export class RankElement {
+  rank: number
+  date: Date
+  username: string
+  noteId: string
+  constructor(rank: number, record: Record) {
+    this.rank = rank
+    this.date = record.date
+    this.username = record.note.user.username
+    this.noteId = record.note.id
+    return this
+  }
+
+  getDiff = (baseDate: Date):number => {
+    return this.date.getTime() - baseDate.getTime()
+  }
+
+  formattedDiff = (baseDate: Date):string => {
+    return `${(this.getDiff(baseDate) / 1000).toFixed(3)}s`
+  }
+}
+
+export function isRecordInRange(record: Record, recordTime: Date) {
+  return record.date.getTime() >= recordTime.getTime() &&
+    record.date.getTime() < recordTime.getTime() + ( 60 * 1000 )
+}
+
+export function usernameWithHost(user: entities.User): string {
+  let username = user.username
+  let host = user.host
+  if (host) username += `@host`
+  return username
+}
+
+export class Utils {
+  static RankElement = RankElement
+  static isRecordInRange = isRecordInRange
+  static usernameWithHost = usernameWithHost
+  static Constants = Constants
+}
