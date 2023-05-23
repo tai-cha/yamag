@@ -19,7 +19,7 @@ const client = new Misskey.api.APIClient(io)
 let notes: Array<Note> = []
 
 let postNote = async (text: string) => { 
-  const post = await client.request('notes/create', { visibility: "followers", text: text })
+  const post = await client.request('notes/create', { visibility: "home", text: text })
   console.log(post)
 }
 
