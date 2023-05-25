@@ -14,8 +14,8 @@
 - 環境変数「SERVER_TOKEN」にMisskey.ioで取得したトークンを設定する
 - 特定時刻をコード上で変更しておく（あとで変えられるようにする予定です）
 - 特定時刻が過ぎた後にコードを実行する(cron等を用いれば自動化できる)
-  - `pnpm run build`をしておいて（前提なので一回でOK）
-  - `pnpm run prod`
+  - `pnpm build`をしておいて（前提なので一回でOK）
+  - `pnpm start`
 - 集計結果がノートされる
 
 ## ENV Config
@@ -41,6 +41,13 @@
 ```js
 /(33-?4|:hanshin:)/
 ```
+### REMINED_POST_TEXT
+- 観測時投稿テキストを変更できます
+- default "334観測中"
+
+### POST_DISABLED
+- 何か値を設定するとMisskeyにノートが投稿されなくなります
+- 手元で集計のみ行いたい場合等にお使いください
  
 ## LICENCE
 このプロジェクトはMPL-2.0を採用しています。
