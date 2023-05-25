@@ -30,8 +30,9 @@ pnpm
 ### SERVER_ORIGIN
 - Misskeyサーバーのアドレス
 - default "https://misskey.io"
-### **SERVER_TOKEN**
-- **設定必須**
+### **SERVER_TOKEN** (**設定必須**)
+- Misskeyから取得したAPIのトークン
+- 最低でもノートの作成・削除の権限は与えないと投稿が不可
 ### RECORD_HOUR
 - 記録を開始する時刻の時(24時間形式)
 - default 3
