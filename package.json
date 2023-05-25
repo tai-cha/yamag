@@ -4,7 +4,7 @@
   "description": "Yet Another Misskey Accuracy Game app",
   "main": "index.js",
   "scripts": {
-    "start": "node ./dist/index.ts",
+    "start": "node ./dist/index.js",
     "remind": "node ./dist/post_remind.js",
     "dev": "cross-env NODE_ENV=development ts-node -r tsconfig-paths/register ./src/index.ts",
     "remind-dev": "cross-env NODE_ENV=development ts-node -r tsconfig-paths/register ./src/post_remind.ts",
