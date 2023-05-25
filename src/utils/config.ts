@@ -20,4 +20,4 @@ export const server:Server = {
   credential: process.env.SERVER_TOKEN || ''
 }
 
-export default {recordTime, postTitle, matcher, userName, server}
+export default {recordTime, postTitle, remindPostText, matcher, userName, server}
