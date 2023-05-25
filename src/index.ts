@@ -1,32 +1,11 @@
-import * as Misskey from 'misskey-js'
-import { Server, Note, Record } from './@types'
-import { RankElement, usernameWithHost, isRecordInRange } from './utils'
-import { Constants } from './utils/constants'
+import YAMAG from '@/utils/misskey'
+import { Note, Record } from '@/@types'
+import { RankElement, usernameWithHost, isRecordInRange } from '@/utils'
+import Config from '@/utils/config'
+import { Constants } from '@/utils/constants'
 import retry from 'async-retry'
 
-process.env.TZ = 'Asia/Tokyo'
-require('dotenv').config()
-
-// 設定など
-const today = new Date()
-const recordTimeHour = Number(process.env?.RECORD_HOUR) || 3
-const recordTimeSEC = Number(process.env?.RECORD_MINUTE) || 34
-const recordTime = new Date(today.getFullYear(), today.getMonth(), today.getDate(), recordTimeHour, recordTimeSEC, 0, 0)
-
-const postTitle = process.env?.POST_TITLE || `Today's 334 Top 10`
-
-let server:Server = {
-  origin: process.env?.SERVER_ORIGIN || "https://misskey.io",
-  credential: process.env.SERVER_TOKEN || ''
-}
-
-const client = new Misskey.api.APIClient(server)
 let notes: Array<Note> = []
-
-let postNote = async (text: string) => { 
-  const post = await client.request('notes/create', { visibility: "public", text: text })
-  console.log(post)
-}
 
 const createRanks = (notes: Array<Note>):Array<RankElement> => {
   const counted = new Set<Note['id']>();
@@ -42,7 +21,7 @@ const createRanks = (notes: Array<Note>):Array<RankElement> => {
     }
   }).filter((record): record is Exclude<typeof record, undefined> => record !== undefined)
 
-  const inRange:Array<Record> = records.filter(record => isRecordInRange(record, recordTime))
+  const inRange:Array<Record> = records.filter(record => isRecordInRange(record, Config.recordTime))
 
   const ranked:Array<RankElement> = []
   inRange.forEach((record, i, org) => {
@@ -58,16 +37,16 @@ const createRanks = (notes: Array<Note>):Array<RankElement> => {
 
 const showRanking = (ranked: Array<RankElement>, all: number) => {
   let rankUserText:string = ranked.filter(el => el.rank <= 10).map(el => 
-    `${Constants.rankEmojis[el.rank - 1]} @${el.username} +${el.formattedDiff(recordTime)}`
+    `${Constants.rankEmojis[el.rank - 1]} @${el.username} +${el.formattedDiff(Config.recordTime)}`
   ).join("\n")
-  return `${postTitle}\n\n${rankUserText}\n\n有効記録数：${ranked.length}\nフライング記録数：${all - ranked.length}`
+  return `${Config.postTitle}\n\n${rankUserText}\n\n有効記録数：${ranked.length}\nフライング記録数：${all - ranked.length}`
 }
 
 const getLastNote = (notes:Array<Note>) => notes.slice(-1)[0];
 
 const getNotes = async ():Promise<Array<Note>> => {
-  const since = recordTime.getTime() - (60 * 1000)
-  const until = recordTime.getTime() + (60 * 1000)
+  const since = Config.recordTime.getTime() - (60 * 1000)
+  const until = Config.recordTime.getTime() + (60 * 1000)
   const options = {
     excludeNsfw: false,
     limit: 100,
@@ -75,12 +54,14 @@ const getNotes = async ():Promise<Array<Note>> => {
   }
   console.log('loading notes...')
   let notes = await retry(
-    async ()=> await client.request('notes/local-timeline', options),
+    async ()=> await YAMAG.Misskey.request('notes/local-timeline', options),
     { retries: 5, onRetry: ()=> { console.log("retrying...") } }
   )
+  if (notes.length === 0) return []
+
   while (new Date(getLastNote(notes).createdAt).getTime() < until) {
     const newNotes = await retry(async ()=> {
-        return await client.request('notes/local-timeline', {
+        return await YAMAG.Misskey.request('notes/local-timeline', {
           sinceId: getLastNote(notes).id,
           ...options
         })
@@ -101,13 +82,10 @@ const getNotes = async ():Promise<Array<Note>> => {
   notes = await getNotes()
   console.log("getNotes end")
 
-  let matcher = process.env.MATCHER || /(33-?4|:hanshin:)/
-  let regexp = new RegExp(matcher)
+  let regexp = new RegExp(Config.matcher)
   let recordedNotes = notes.filter(note => note.text?.match(regexp))
-  let ranking = createRanks(recordedNotes)
-  let text = showRanking(ranking, recordedNotes.length)
-  console.log(text)
-  if (!process.env?.POST_DISABLED) {
-    postNote(text)
-  }
+  let filteredNotes = recordedNotes.filter(note => !['334', Config.userName].includes(note.user.username) )
+  let ranking = createRanks(filteredNotes)
+  let text = showRanking(ranking, filteredNotes.length)
+  YAMAG.Misskey.postNote(text)
 })()

@@ -1,7 +1,6 @@
-import { Record } from "../@types"
+import { Record } from "@/@types"
 import { entities } from "misskey-js";
-import { Constants } from "./constants";
-import retry from 'async-retry'
+import { Constants } from "@/utils/constants";
 
 export class RankElement {
   rank: number
