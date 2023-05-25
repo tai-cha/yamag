@@ -30,24 +30,36 @@ pnpm
 ### SERVER_ORIGIN
 - Misskeyサーバーのアドレス
 - default "https://misskey.io"
+
 ### **SERVER_TOKEN** (**設定必須**)
 - Misskeyから取得したAPIのトークン
 - 最低でもノートの作成・削除の権限は与えないと投稿が不可
+
 ### RECORD_HOUR
 - 記録を開始する時刻の時(24時間形式)
 - default 3
+
 ### RECORD_MINUTE
 - 記録を開始する時刻の分(24時間形式)
 - default 34
+
 ### POST_TITLE
 - 投稿時タイトル
 - default "Today's 334 Top 10"
+
 ### MATCHER
 - 取得対象となる文字列を変更する場合に使います
 - default 
 ```js
 /(33-?4|:hanshin:)/
 ```
+
+### USER_NAME
+- 自身のusername
+  - 自身のノートをフライング含め集計しないために入れています
+  - （※今後廃止してBotユーザー全部弾くようにするかも）
+- default `@334_t`
+
 ### REMINED_POST_TEXT
 - 観測時投稿テキストを変更できます
 - default "334観測中"
