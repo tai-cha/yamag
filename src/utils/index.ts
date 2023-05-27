@@ -6,11 +6,13 @@ export class RankElement {
   rank: number
   date: Date
   username: string
+  userId: string
   noteId: string
   constructor(rank: number, record: Record) {
     this.rank = rank
     this.date = record.date
     this.username = record.note.user.username
+    this.userId = record.note.user.id
     this.noteId = record.note.id
     return this
   }

@@ -15,6 +15,7 @@ export type Record = {
 export type RankElement = {
   date: Date,
   username: string,
+  userId: string,
   rank: number,
   noteId: string
 }
