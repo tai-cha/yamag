@@ -34,9 +34,12 @@ const getStatics = async (u:Misskey.entities.User) => {
   const user = await prisma.user.findFirst({ where: { id: u.id }, include: { rankRecords: true } })
   if (user) {
     const cnt = await prisma.rankRecord.count({ where: { userId: user.id } })
-    const rankinCnt = await prisma.rankRecord.count({ where: { userId: user.id, rank: {gte:1, lte:10} } })
+    const rankedInCnt = await prisma.rankRecord.count({ where: { userId: user.id, rank: {gte:1, lte:10} } })
     const firstCnt = await prisma.rankRecord.count({ where: { userId: user.id, rank: 1 } })
-    return `@${username}\n参加回数：${cnt}\nランクイン回数：${rankinCnt}\n1位獲得回数：${firstCnt}`
+    const maxRank = await prisma.rankRecord.findFirst({ where: { userId: user.id, rank: {gte:1} }, orderBy: [{ rank: 'asc' }] })
+    const maxRankString = maxRank ? `${maxRank}位` : 'なし'
+
+    return `@${username}\n参加回数：${cnt}\nランクイン回数：${rankedInCnt}\n最高ランク:${maxRankString}\n1位獲得回数：${firstCnt}`;
   } else {
     return `@${username}\n記録なし`
   }
@@ -52,8 +55,14 @@ const getStatics = async (u:Misskey.entities.User) => {
         YAMAG.Misskey.postNote(text, { replyId: note.id })
       }
     } else if (note.replyId === null || note.reply?.user?.username === Config.userName) {
-      let text = await getStatics(note.user)
-      YAMAG.Misskey.postNote(text, { replyId: note.id })
+      if (note.text?.match(/\/follow/)) {
+        YAMAG.Misskey.request('following/create', { userId: note.userId })
+      } else if (note.text?.match(/\/unfollow/)) {
+        YAMAG.Misskey.request('following/delete', { userId: note.userId })
+      } else {
+        let text = await getStatics(note.user)
+        YAMAG.Misskey.postNote(text, { replyId: note.id })
+      }
     }
   })
 })()
