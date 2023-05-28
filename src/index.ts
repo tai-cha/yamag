@@ -115,9 +115,9 @@ const getNotes = async ():Promise<Array<Note>> => {
             note.user.host === null
   })
   let ranking = createRanks(filteredNotes)
+  let text = showRanking(ranking)
+  YAMAG.Misskey.postNote(text)
   if (Config.isDbEnabled()) {
     storeRanks(ranking)
   }
-  let text = showRanking(ranking)
-  YAMAG.Misskey.postNote(text)
 })()
