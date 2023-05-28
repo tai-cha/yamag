@@ -12,8 +12,8 @@
     "build": "tsc && tsc-alias",
     "build:watch": "tsc && (concurrently \"tsc -w\" \"tsc-alias -w\")",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "migrate": "pnpm dlx prisma migrate",
-    "migrate-dev": "dotenv -e .env.development pnpm dlx prisma migrate",
+    "migrate": "pnpm dlx prisma migrate deploy",
+    "migrate-dev": "dotenv -e .env.development pnpm dlx prisma migrate dev",
     "mentions-dev": "cross-env NODE_ENV=development dotenv -e .env.development ts-node ./src/mentions.ts"
   },
   "keywords": [],
