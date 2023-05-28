@@ -6,11 +6,13 @@ export class RankElement {
   rank: number
   date: Date
   username: string
+  userId: string
   noteId: string
   constructor(rank: number, record: Record) {
     this.rank = rank
     this.date = record.date
     this.username = record.note.user.username
+    this.userId = record.note.user.id
     this.noteId = record.note.id
     return this
   }
@@ -31,8 +33,7 @@ export function isRecordInRange(record: Record, recordTime: Date) {
 
 export function usernameWithHost(user: entities.User): string {
   let username = user.username
-  let host = user.host
-  if (host) username += `@host`
+  if (user.host) username += `@${user.host}`
   return username
 }
 
