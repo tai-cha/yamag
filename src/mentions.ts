@@ -43,7 +43,7 @@ const getStatics = async (u:Misskey.entities.User) => {
     const rankedInCnt = await prisma.rankRecord.count({ where: { userId: user.id, rank: {gte:1, lte:10} } })
     const firstCnt = await prisma.rankRecord.count({ where: { userId: user.id, rank: 1 } })
     const maxRank = await prisma.rankRecord.findFirst({ where: { userId: user.id, rank: {gte:1} }, orderBy: [{ rank: 'asc' }] })
-    const maxRankString = maxRank ? `${maxRank}位` : 'なし'
+    const maxRankString = maxRank ? `${maxRank.rank}位` : 'なし'
 
     return `@${username}\n参加回数：${cnt}\nランクイン回数：${rankedInCnt}\n最高ランク:${maxRankString}\n1位獲得回数：${firstCnt}`;
   } else {
