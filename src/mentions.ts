@@ -24,9 +24,15 @@ const getRecordTxt = async (note:Note):Promise<string> => {
 
   let username = usernameWithHost(note.user)
   const dateString = new Date(note.createdAt).toLocaleString('ja-jp', formatOptions)
-  const rankTxt = record?.rank ? `${record.rank}位` : '未記録'
+  let rank:number | null | undefined = record?.rank
+  let rankText = '未記録'
+  
+  if (rank !== null && rank !== undefined) {
+    if (rank < 0) rankText = 'DQ'
+    else rankText = `${rank}位`
+  }
 
-  return `@${username}\n順位：${rankTxt}\nノート時刻：${dateString}`
+  return `@${username}\n順位：${rankText}\nノート時刻：${dateString}`
 }
 
 const getStatics = async (u:Misskey.entities.User) => {
