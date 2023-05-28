@@ -79,14 +79,14 @@ const getNotes = async ():Promise<Array<Note>> => {
   }
   console.log('loading notes...')
   let notes = await retry(
-    async ()=> await YAMAG.Misskey.request('notes/local-timeline', options),
+    async ()=> await YAMAG.Misskey.request('notes/hybrid-timeline', options),
     { retries: 5, onRetry: ()=> { console.log("retrying...") } }
   )
   if (notes.length === 0) return []
 
   while (new Date(getLastNote(notes).createdAt).getTime() < until) {
     const newNotes = await retry(async ()=> {
-        return await YAMAG.Misskey.request('notes/local-timeline', {
+        return await YAMAG.Misskey.request('notes/hybrid-timeline', {
           sinceId: getLastNote(notes).id,
           ...options
         })
@@ -109,7 +109,11 @@ const getNotes = async ():Promise<Array<Note>> => {
 
   let regexp = new RegExp(Config.matcher)
   let recordedNotes = notes.filter(note => note.text?.match(regexp))
-  let filteredNotes = recordedNotes.filter(note => !['334', Config.userName].includes(note.user.username) )
+  let filteredNotes = recordedNotes.filter(note => {
+    return !['334', Config.userName].includes(note.user.username) &&
+            ['public', 'home'].includes(note.visibility) &&
+            note.user.host === null
+  })
   let ranking = createRanks(filteredNotes)
   if (Config.isDbEnabled()) {
     storeRanks(ranking)
