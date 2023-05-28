@@ -24,10 +24,10 @@ const getRecordTxt = async (note:Note):Promise<string> => {
 
   let username = usernameWithHost(note.user)
   const dateString = new Date(note.createdAt).toLocaleString('ja-jp', formatOptions)
-  let rank:number | undefined = record?.rank
+  let rank:number | null | undefined = record?.rank
   let rankText = '未記録'
   
-  if (rank !== undefined) {
+  if (rank !== null && rank !== undefined) {
     if (rank < 0) rankText = 'DQ'
     else rankText = `${rank}位`
   }
