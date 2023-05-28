@@ -14,10 +14,13 @@ export const remindPostText = process.env?.REMINED_POST_TEXT || `334観測中`
 export const userName = process.env?.USER_NAME || "334_t"
 
 export const matcher = process.env.MATCHER || /(33-?4|:hanshin:)/
+const DATABASE_URL = process.env.DATABASE_URL
 
 export const server:Server = {
   origin: process.env?.SERVER_ORIGIN || "https://misskey.io",
   credential: process.env.SERVER_TOKEN || ''
 }
 
-export default {recordTime, postTitle, remindPostText, matcher, userName, server}
+export const isDbEnabled = ():boolean => !!DATABASE_URL
+
+export default {recordTime, postTitle, remindPostText, matcher, userName, server, isDbEnabled}

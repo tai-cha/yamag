@@ -4,6 +4,7 @@ import { RankElement, usernameWithHost, isRecordInRange } from '@/utils'
 import Config from '@/utils/config'
 import { Constants } from '@/utils/constants'
 import retry from 'async-retry'
+import { PrismaClient } from '@prisma/client'
 
 let notes: Array<Note> = []
 
@@ -22,6 +23,7 @@ const createRanks = (notes: Array<Note>):Array<RankElement> => {
   }).filter((record): record is Exclude<typeof record, undefined> => record !== undefined)
 
   const inRange:Array<Record> = records.filter(record => isRecordInRange(record, Config.recordTime))
+  const outOfRange:Array<Record> = records.filter(record => !isRecordInRange(record, Config.recordTime))
 
   const ranked:Array<RankElement> = []
   inRange.forEach((record, i, org) => {
@@ -31,15 +33,38 @@ const createRanks = (notes: Array<Note>):Array<RankElement> => {
     }
     ranked.push(new RankElement(rank, record))
   })
+  outOfRange.forEach(record => {
+    ranked.push(new RankElement(-1, record))
+  })
 
   return ranked
 }
 
-const showRanking = (ranked: Array<RankElement>, all: number) => {
-  let rankUserText:string = ranked.filter(el => el.rank <= 10).map(el => 
+const storeRanks = async (ranks:Array<RankElement>) => {
+  const prisma = new PrismaClient();
+  const date = await prisma.rankDate.findUnique({ where: { date: Config.recordTime } }) ||
+               await prisma.rankDate.create({ data: { date: Config.recordTime } })
+  const rankRecords = await Promise.all(
+    ranks.map(async (rank)  => {
+      const userId = rank.userId
+      const user = await prisma.user.findUnique({ where: { id: userId } }) ||
+                   await prisma.user.create({ data: { id: userId, userName: rank.username} })
+      return { rank: rank.rank, userId: user.id, noteId: rank.noteId, rankDateId: date.id, postedAt: rank.date }
+    })
+  )
+  const created = await prisma.rankRecord.createMany({ data: rankRecords, skipDuplicates: true })
+  console.log(created)
+}
+
+const showRanking = (ranked: Array<RankElement>) => {
+  let rankUserText:string = ranked.filter(el => 0 < el.rank && el.rank <= 10).map(el => 
     `${Constants.rankEmojis[el.rank - 1]} @${el.username} +${el.formattedDiff(Config.recordTime)}`
   ).join("\n")
-  return `${Config.postTitle}\n\n${rankUserText}\n\n有効記録数：${ranked.length}\nフライング記録数：${all - ranked.length}`
+  let validCount = ranked.reduce((acc, curr)=> {
+    if (curr.rank > 0) acc += 1
+    return acc
+  }, 0)
+  return `${Config.postTitle}\n\n${rankUserText}\n\n有効記録数：${validCount}\nフライング記録数：${ranked.length - validCount}`
 }
 
 const getLastNote = (notes:Array<Note>) => notes.slice(-1)[0];
@@ -86,6 +111,9 @@ const getNotes = async ():Promise<Array<Note>> => {
   let recordedNotes = notes.filter(note => note.text?.match(regexp))
   let filteredNotes = recordedNotes.filter(note => !['334', Config.userName].includes(note.user.username) )
   let ranking = createRanks(filteredNotes)
-  let text = showRanking(ranking, filteredNotes.length)
+  if (Config.isDbEnabled()) {
+    storeRanks(ranking)
+  }
+  let text = showRanking(ranking)
   YAMAG.Misskey.postNote(text)
 })()

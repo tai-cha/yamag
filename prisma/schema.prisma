@@ -1,0 +1,36 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model RankRecord {
+  id          Int      @default(autoincrement()) @id
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  postedAt    DateTime
+  rank        Int
+  noteId      String   @db.Text @unique
+  userId      String   @db.Text
+  user        User     @relation(fields: [userId], references: [id])
+  rankDateId  Int
+  rankDate    RankDate @relation(fields: [rankDateId], references: [id])
+}
+
+model RankDate {
+  id   Int @default(autoincrement()) @id
+  date DateTime @unique
+  rankRecords RankRecord[]
+}
+
+model User {
+  id          String @db.Text @id
+  userName    String @db.Text
+  rankRecords RankRecord[]
+}
