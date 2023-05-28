@@ -33,8 +33,7 @@ export function isRecordInRange(record: Record, recordTime: Date) {
 
 export function usernameWithHost(user: entities.User): string {
   let username = user.username
-  let host = user.host
-  if (host) username += `@host`
+  if (user.host) username += `@${user.host}`
   return username
 }
 

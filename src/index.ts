@@ -111,7 +111,9 @@ const getNotes = async ():Promise<Array<Note>> => {
   let recordedNotes = notes.filter(note => note.text?.match(regexp))
   let filteredNotes = recordedNotes.filter(note => !['334', Config.userName].includes(note.user.username) )
   let ranking = createRanks(filteredNotes)
-  storeRanks(ranking)
+  if (Config.isDbEnabled()) {
+    storeRanks(ranking)
+  }
   let text = showRanking(ranking)
   YAMAG.Misskey.postNote(text)
 })()

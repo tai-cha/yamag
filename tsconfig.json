@@ -112,5 +112,12 @@
   },
   "include" : [
     "./src/**/*.ts"
-  ]
+  ],
+  "ts-node": {
+    "transpileOnly": true,
+    "require": [
+      "typescript-transform-paths/register",
+      "tsconfig-paths/register"
+    ]
+  },
 }

@@ -18,15 +18,15 @@ class Misskey {
       return this.createApiClient()
     }
   }
-  static async postNote(text: string, options?: object) {
-    let _options = { visibility: "public", text: text }
+  static async postNote<O extends Mi.Endpoints['notes/create']['req']>(text: string, options?: O) {
+    let _options:Mi.Endpoints['notes/create']['req'] = { visibility: "public", text: text }
     Object.assign(_options, options)
     if (process.env?.POST_DISABLED) {
       console.log('post disabled')
       console.log(text)
       return
     }
-    const post = await this.getOrCreateApiClient().request('notes/create', { visibility: "public", text: text })
+    const post = await this.request('notes/create', _options)
     console.log(post)
     return post
   }
