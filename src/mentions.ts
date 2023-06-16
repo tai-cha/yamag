@@ -75,9 +75,11 @@ const getStatics = async (u:Misskey.entities.User) => {
     } else if (note.replyId === null || note.reply?.user?.username === Config.userName) {
       YAMAG.Misskey.request('notes/reactions/create', { noteId: note.id, reaction: "👍" })
       if (note.text?.match(/\/follow/)) {
-        YAMAG.Misskey.request('following/create', { userId: note.userId })
+        await YAMAG.Misskey.request('following/create', { userId: note.userId })
+        YAMAG.Misskey.request('notes/reactions/create', { noteId: note.id, reaction: "✅" })
       } else if (note.text?.match(/\/unfollow/)) {
-        YAMAG.Misskey.request('following/delete', { userId: note.userId })
+        await YAMAG.Misskey.request('following/delete', { userId: note.userId })
+        YAMAG.Misskey.request('notes/reactions/create', { noteId: note.id, reaction: "👋" })
       } else {
         let text = await getStatics(note.user)
         if (text !== undefined) YAMAG.Misskey.postNote(text, { replyId: note.id })
