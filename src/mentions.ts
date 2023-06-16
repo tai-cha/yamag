@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import Config from "@/utils/config";
+import Config, { isDbEnabled } from "@/utils/config";
 import * as Misskey from "misskey-js"
 import WebSocket from 'ws';
 import { Note } from "./@types";
@@ -17,9 +17,11 @@ let formatOptions:Intl.DateTimeFormatOptions = {
   fractionalSecondDigits: 3
 }
 
-const prisma = new PrismaClient();
+const prisma = isDbEnabled() ? new PrismaClient() : null;
 
-const getRecordTxt = async (note:Note):Promise<string> => {
+const getRecordTxt = async (note:Note):Promise<string|undefined> => {
+  if (prisma == null) return;
+
   let record = await prisma.rankRecord.findUnique({ where: { noteId:  note.id }, include: { user: true } })
 
   let username = usernameWithHost(note.user)
@@ -35,7 +37,16 @@ const getRecordTxt = async (note:Note):Promise<string> => {
   return `@${username}\n順位：${rankText}\nノート時刻：${dateString}`
 }
 
+const getTimeTxt = async (note:Note):Promise<string> => {
+  let username = usernameWithHost(note.user)
+  const dateString = new Date(note.createdAt).toLocaleString('ja-jp', formatOptions)
+
+  return `@${username}\nノート時刻：${dateString}`
+}
+
 const getStatics = async (u:Misskey.entities.User) => {
+  if (prisma == null) return
+
   let username = usernameWithHost(u)
   const user = await prisma.user.findFirst({ where: { id: u.id }, include: { rankRecords: true } })
   if (user) {
@@ -57,17 +68,19 @@ const getStatics = async (u:Misskey.entities.User) => {
   mainChannel.on('mention', async note => {
     if (note.userId === note.reply?.userId) {
       if(note.reply?.text?.match(Config.matcher)) {
-        let text = await getRecordTxt(note.reply)
+        YAMAG.Misskey.request('notes/reactions/create', { noteId: note.id, reaction: "👍" })
+        let text = await getRecordTxt(note.reply) || await getTimeTxt(note.reply)
         YAMAG.Misskey.postNote(text, { replyId: note.id })
       }
     } else if (note.replyId === null || note.reply?.user?.username === Config.userName) {
+      YAMAG.Misskey.request('notes/reactions/create', { noteId: note.id, reaction: "👍" })
       if (note.text?.match(/\/follow/)) {
         YAMAG.Misskey.request('following/create', { userId: note.userId })
       } else if (note.text?.match(/\/unfollow/)) {
         YAMAG.Misskey.request('following/delete', { userId: note.userId })
       } else {
         let text = await getStatics(note.user)
-        YAMAG.Misskey.postNote(text, { replyId: note.id })
+        if (text !== undefined) YAMAG.Misskey.postNote(text, { replyId: note.id })
       }
     }
   })
