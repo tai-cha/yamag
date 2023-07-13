@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import Config from "@/utils/config";
+import Config, { isDbEnabled } from "@/utils/config";
 import * as Misskey from "misskey-js"
 import WebSocket from 'ws';
 import { Note } from "./@types";
@@ -17,19 +17,36 @@ let formatOptions:Intl.DateTimeFormatOptions = {
   fractionalSecondDigits: 3
 }
 
-const prisma = new PrismaClient();
+const prisma = isDbEnabled() ? new PrismaClient() : null;
 
-const getRecordTxt = async (note:Note):Promise<string> => {
+const getRecordTxt = async (note:Note):Promise<string|undefined> => {
+  if (prisma == null) return;
+
   let record = await prisma.rankRecord.findUnique({ where: { noteId:  note.id }, include: { user: true } })
 
   let username = usernameWithHost(note.user)
   const dateString = new Date(note.createdAt).toLocaleString('ja-jp', formatOptions)
-  const rankTxt = record?.rank ? `${record.rank}位` : '未記録'
+  let rank:number | null | undefined = record?.rank
+  let rankText = '未記録'
+  
+  if (rank !== null && rank !== undefined) {
+    if (rank < 0) rankText = 'DQ'
+    else rankText = `${rank}位`
+  }
 
-  return `@${username}\n順位：${rankTxt}\nノート時刻：${dateString}`
+  return `@${username}\n順位：${rankText}\nノート時刻：${dateString}`
+}
+
+const getTimeTxt = async (note:Note):Promise<string> => {
+  let username = usernameWithHost(note.user)
+  const dateString = new Date(note.createdAt).toLocaleString('ja-jp', formatOptions)
+
+  return `@${username}\nノート時刻：${dateString}`
 }
 
 const getStatics = async (u:Misskey.entities.User) => {
+  if (prisma == null) return
+
   let username = usernameWithHost(u)
   const user = await prisma.user.findFirst({ where: { id: u.id }, include: { rankRecords: true } })
   if (user) {
@@ -37,7 +54,7 @@ const getStatics = async (u:Misskey.entities.User) => {
     const rankedInCnt = await prisma.rankRecord.count({ where: { userId: user.id, rank: {gte:1, lte:10} } })
     const firstCnt = await prisma.rankRecord.count({ where: { userId: user.id, rank: 1 } })
     const maxRank = await prisma.rankRecord.findFirst({ where: { userId: user.id, rank: {gte:1} }, orderBy: [{ rank: 'asc' }] })
-    const maxRankString = maxRank ? `${maxRank}位` : 'なし'
+    const maxRankString = maxRank ? `${maxRank.rank}位` : 'なし'
 
     return `@${username}\n参加回数：${cnt}\nランクイン回数：${rankedInCnt}\n最高ランク:${maxRankString}\n1位獲得回数：${firstCnt}`;
   } else {
@@ -52,17 +69,21 @@ const getStatics = async (u:Misskey.entities.User) => {
     if (isUserDetailed(note.user) && note.user?.isBot === false) {
       if (note.userId === note.reply?.userId) {
         if(note.reply?.text?.match(Config.matcher)) {
-          let text = await getRecordTxt(note.reply)
+          YAMAG.Misskey.request('notes/reactions/create', { noteId: note.id, reaction: "👍" })
+          let text = await getRecordTxt(note.reply) || await getTimeTxt(note.reply)
           YAMAG.Misskey.postNote(text, { replyId: note.id })
         }
       } else if (note.replyId === null || note.reply?.user?.username === Config.userName) {
+        YAMAG.Misskey.request('notes/reactions/create', { noteId: note.id, reaction: "👍" })
         if (note.text?.match(/\/follow/)) {
-          YAMAG.Misskey.request('following/create', { userId: note.userId })
+          await YAMAG.Misskey.request('following/create', { userId: note.userId })
+          YAMAG.Misskey.request('notes/reactions/create', { noteId: note.id, reaction: "✅" })
         } else if (note.text?.match(/\/unfollow/)) {
-          YAMAG.Misskey.request('following/delete', { userId: note.userId })
+          await YAMAG.Misskey.request('following/delete', { userId: note.userId })
+          YAMAG.Misskey.request('notes/reactions/create', { noteId: note.id, reaction: "👋" })
         } else {
           let text = await getStatics(note.user)
-          YAMAG.Misskey.postNote(text, { replyId: note.id })
+          if (text !== undefined) YAMAG.Misskey.postNote(text, { replyId: note.id })
         }
       }
     }
