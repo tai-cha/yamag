@@ -4,7 +4,7 @@ import * as Misskey from "misskey-js"
 import WebSocket from 'ws';
 import { Note } from "./@types";
 import YAMAG from "@/utils/misskey"
-import { usernameWithHost } from '@/utils'
+import { usernameWithHost, isUserDetailed } from '@/utils'
 
 // load env
 Config
@@ -66,23 +66,25 @@ const getStatics = async (u:Misskey.entities.User) => {
   const stream = new Misskey.Stream(Config.server.origin, { token: Config.server.credential }, { WebSocket })
   const mainChannel = stream.useChannel('main')
   mainChannel.on('mention', async note => {
-    if (note.userId === note.reply?.userId) {
-      if(note.reply?.text?.match(Config.matcher)) {
+    if (isUserDetailed(note.user) && note.user?.isBot === false) {
+      if (note.userId === note.reply?.userId) {
+        if(note.reply?.text?.match(Config.matcher)) {
+          YAMAG.Misskey.request('notes/reactions/create', { noteId: note.id, reaction: "👍" })
+          let text = await getRecordTxt(note.reply) || await getTimeTxt(note.reply)
+          YAMAG.Misskey.postNote(text, { replyId: note.id })
+        }
+      } else if (note.replyId === null || note.reply?.user?.username === Config.userName) {
         YAMAG.Misskey.request('notes/reactions/create', { noteId: note.id, reaction: "👍" })
-        let text = await getRecordTxt(note.reply) || await getTimeTxt(note.reply)
-        YAMAG.Misskey.postNote(text, { replyId: note.id })
-      }
-    } else if (note.replyId === null || note.reply?.user?.username === Config.userName) {
-      YAMAG.Misskey.request('notes/reactions/create', { noteId: note.id, reaction: "👍" })
-      if (note.text?.match(/\/follow/)) {
-        await YAMAG.Misskey.request('following/create', { userId: note.userId })
-        YAMAG.Misskey.request('notes/reactions/create', { noteId: note.id, reaction: "✅" })
-      } else if (note.text?.match(/\/unfollow/)) {
-        await YAMAG.Misskey.request('following/delete', { userId: note.userId })
-        YAMAG.Misskey.request('notes/reactions/create', { noteId: note.id, reaction: "👋" })
-      } else {
-        let text = await getStatics(note.user)
-        if (text !== undefined) YAMAG.Misskey.postNote(text, { replyId: note.id })
+        if (note.text?.match(/\/follow/)) {
+          await YAMAG.Misskey.request('following/create', { userId: note.userId })
+          YAMAG.Misskey.request('notes/reactions/create', { noteId: note.id, reaction: "✅" })
+        } else if (note.text?.match(/\/unfollow/)) {
+          await YAMAG.Misskey.request('following/delete', { userId: note.userId })
+          YAMAG.Misskey.request('notes/reactions/create', { noteId: note.id, reaction: "👋" })
+        } else {
+          let text = await getStatics(note.user)
+          if (text !== undefined) YAMAG.Misskey.postNote(text, { replyId: note.id })
+        }
       }
     }
   })
