@@ -37,6 +37,10 @@ export function usernameWithHost(user: entities.User): string {
   return username
 }
 
+export function isUserDetailed(user: entities.User): user is entities.UserDetailed {
+  return ('isBot' in user)
+}
+
 export class Utils {
   static RankElement = RankElement
   static isRecordInRange = isRecordInRange
