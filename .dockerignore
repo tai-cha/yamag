@@ -1,6 +1,15 @@
-node_modules
+.gitignore
+.git
 .vscode
 .env
+.env.template
 *.env.template.local
 .env.development
 build-script.sh
+Dockerfile
+docker-compose.yml
+
+node_modules
+dist
+
+/data
