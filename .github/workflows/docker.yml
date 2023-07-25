@@ -47,7 +47,7 @@ jobs:
           cache-to: type=gha,mode=max
   
   push_to_github_registry:
-    name: Push Docker image to Docker Hub
+    name: Push Docker image to GitHub Registry
     runs-on: ubuntu-latest
 
     steps:
@@ -69,7 +69,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and Push to Docker Hub
+      - name: Build and Push to GitHub Registry
         uses: docker/build-push-action@v4
         with:
           builder: ${{ steps.buildx.outputs.name }}
