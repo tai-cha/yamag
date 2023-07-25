@@ -45,8 +45,8 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-      - name: Docker meta
-        id: meta
+      - name: Docker github meta
+        id: github-meta
         uses: docker/metadata-action@v4
         with:
           images: ghcr.io/taichanne30/yamag/yamag
@@ -64,7 +64,7 @@ jobs:
           push: true
           platforms: ${{ steps.buildx.outputs.platforms }}
           provenance: false
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ steps.github-meta.outputs.tags }}
+          labels: ${{ steps.github-meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
