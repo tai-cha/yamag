@@ -16,7 +16,7 @@
 ## How to use
 ### 前提
 ```
-Node js v18.16.0
+Node js v18.17.0
 pnpm
 ```
 - `pnpm install`(依存関係のインストール)
