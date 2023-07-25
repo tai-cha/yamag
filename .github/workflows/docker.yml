@@ -47,7 +47,7 @@ jobs:
           cache-to: type=gha,mode=max
   
   push_to_github_registry:
-    name: Push Docker image to Docker Hub
+    name: Push Docker image to GitHub Registory
     runs-on: ubuntu-latest
 
     steps:
