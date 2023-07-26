@@ -1,0 +1,26 @@
+version: '3'
+services:
+  app:
+    build: .
+    restart: always
+    links:
+      - db
+    networks:
+      - int_net
+      - ext_net
+    env_file:
+      - .env.app
+  db:
+    image: postgres:15.3-bullseye
+    networks:
+      - int_net
+    env_file:
+      - .env.db
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+networks:
+  int_net:
+    internal: true
+  ext_net:

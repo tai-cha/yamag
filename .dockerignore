@@ -3,9 +3,9 @@
 .github
 .vscode
 .env
-.env.template
+/env_templates
+.env.*
 *.env.template.local
-.env.development
 build-script.sh
 Dockerfile
 docker-compose.yml
@@ -13,4 +13,4 @@ docker-compose.yml
 node_modules
 dist
 
-/data
+/postgres-data

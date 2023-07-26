@@ -3,3 +3,7 @@
 /dist
 .vscode
 *.env.template.local
+
+.env.app
+.env.db
+postgres-data
