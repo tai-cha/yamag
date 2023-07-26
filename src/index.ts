@@ -135,7 +135,10 @@ const getNotes = async ():Promise<Array<Note>> => {
   }, {
     retries: 15,
     minTimeout: 5000,
-    onRetry: (err, num)=> { console.log(`get note posting...`, err, num) }
+    onRetry: (err, num)=> {
+      console.log(`Retrying: note posting...${num}`)
+      console.debug(err)
+    }
   })
   if (Config.isDbEnabled()) {
     storeRanks(ranking)
