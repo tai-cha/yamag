@@ -6,6 +6,8 @@ import { Constants } from '@/utils/constants'
 import retry from 'async-retry'
 import { PrismaClient } from '@prisma/client'
 
+const NOTE_GET_RETRY_COUNT = 15
+
 let notes: Array<Note> = []
 
 const createRanks = (notes: Array<Note>):Array<RankElement> => {
@@ -67,6 +69,14 @@ const showRanking = (ranked: Array<RankElement>) => {
   return `${Config.postTitle}\n\n${rankUserText}\n\n有効記録数：${validCount}\nフライング記録数：${ranked.length - validCount}`
 }
 
+const raiseOmittedTimeline = (notes:Note[]) => {
+  // misskey.ioでノートが取得できない場合にエラー扱いしてリトライするためにエラーを起こす
+  if (notes.filter(note => note.userId === '7rkr4nmz19' && note.text?.includes('読み込み時のタイムライン表示を簡略化')).length >= 2) {
+    console.debug('高負荷のためTL取得不可')
+    throw new Error('omitted timeline')
+  }
+}
+
 const getLastNote = (notes:Array<Note>) => notes.slice(-1)[0];
 
 const getNotes = async ():Promise<Array<Note>> => {
@@ -79,20 +89,43 @@ const getNotes = async ():Promise<Array<Note>> => {
   }
   console.log('loading notes...')
   let notes = await retry(
-    async ()=> await YAMAG.Misskey.request('notes/hybrid-timeline', options),
-    { retries: 5, onRetry: ()=> { console.log("retrying...") } }
+    async ()=> {
+      console.log(`Getting first notes (1 minute previous)`)
+      const req = await YAMAG.Misskey.request('notes/hybrid-timeline', options)
+
+      raiseOmittedTimeline(req)
+
+      return req
+    },
+    {
+      retries: NOTE_GET_RETRY_COUNT,
+      minTimeout: 5000,
+      onRetry: (err, num)=> {
+        console.log(`get note retrying...${num}`)
+        console.debug(err)
+      }
+    }
   )
   if (notes.length === 0) return []
 
   while (new Date(getLastNote(notes).createdAt).getTime() < until) {
     const newNotes = await retry(async ()=> {
-        return await YAMAG.Misskey.request('notes/hybrid-timeline', {
+        console.log(`Getting notes: {sinceId: ${getLastNote(notes).id}}`)
+        const req = await YAMAG.Misskey.request('notes/hybrid-timeline', {
           sinceId: getLastNote(notes).id,
           ...options
         })
+
+        raiseOmittedTimeline(req)
+
+        return req
       }, {
-        retries: 5,
-        onRetry: ()=> { console.log("retrying...") }
+        retries: NOTE_GET_RETRY_COUNT,
+        minTimeout: 5000,
+        onRetry: (err, num)=> {
+          console.log(`get note retrying...${num}`)
+          console.debug(err)
+        }
       }
     )
     notes = notes.concat(newNotes)
@@ -116,7 +149,16 @@ const getNotes = async ():Promise<Array<Note>> => {
   })
   let ranking = createRanks(filteredNotes)
   let text = showRanking(ranking)
-  YAMAG.Misskey.postNote(text)
+  let post = await retry(async() => {
+    YAMAG.Misskey.postNote(text)
+  }, {
+    retries: 15,
+    minTimeout: 5000,
+    onRetry: (err, num)=> {
+      console.log(`Retrying: note posting...${num}`)
+      console.debug(err)
+    }
+  })
   if (Config.isDbEnabled()) {
     storeRanks(ranking)
   }
