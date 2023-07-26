@@ -87,7 +87,57 @@ pnpm
 ## etc..
 - dotenv導入済みなのでローカルなどで試す場合は`.env`のファイルを用意して配置すれば設定変更可能
   - 開発環境（NODE_ENV=development）の場合は`.env.development`が読み込まれる（`.env`は読み込まない）
- 
+
+## Dockerを用いた構築
+// TODO
+// この方法ではデータベースはローカルのものを使う、もしくは用意しないことも可能です
+1. （任意）データベースを用意します
+1. リポジトリよりbuild もしくは `taichanne30/yamag`イメージを利用します
+1. `docker run`コマンドを用いて実行してください
+
+## Docker-Composeを用いた構築
+この方法ではデータベースも同時に用意可能です
+### 公式イメージを用いる場合
+1. 適当なディレクトリを作成します
+1. リポジトリ内のenv_templatesを参考に`.env.app`, `.env.db`を作成します
+1. 以下のdocker-compose.ymlを作成します
+```docker-compose.yml
+version: '3'
+services:
+  app:
+    image: taichanne30/yamag:master
+    restart: always
+    links:
+      - db
+    networks:
+      - int_net
+      - ext_net
+    env_file:
+      - .env.app
+  db:
+    image: postgres:15.3-bullseye
+    networks:
+      - int_net
+    env_file:
+      - .env.db
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+networks:
+  int_net:
+    internal: true
+  ext_net:
+```
+1. （初回起動時のみ）マイグレーションを実行する `docker-compose run -it app pnpm run migrate`
+1. `docker-compose up -d`等で起動する
+
+### 自分でビルドする場合（カスタムする場合など）
+1. リポジトリをcloneします
+1. リポジトリ内のenv_templatesを参考に`.env.app`, `.env.db`を作成します
+1. （初回起動時のみ）マイグレーションを実行する `docker-compose run -it app pnpm run migrate`
+1. `docker-compose up -d`等で起動する
+
 ## LICENCE
 このプロジェクトはMPL-2.0を採用しています。
 ライセンスに従った形での利用や改変は大歓迎です
