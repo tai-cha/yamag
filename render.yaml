@@ -8,6 +8,10 @@ services:
     buildCommand: "bash build-script.sh"
     startCommand: "pnpm start"
     envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: yamag-db
+          property: connectionString
       - fromGroup: yamag-settings
   - type: cron
     name: yamag-remind
@@ -18,6 +22,10 @@ services:
     buildCommand: "bash build-script.sh"
     startCommand: "pnpm start"
     envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: yamag-db
+          property: connectionString
       - fromGroup: yamag-settings
   - type: worker
     name: yamag-mention
@@ -27,6 +35,10 @@ services:
     buildCommand: "bash build-script.sh"
     startCommand: "pnpm run mention"
     envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: yamag-db
+          property: connectionString
       - fromGroup: yamag-settings
 
 databases:
@@ -38,37 +50,23 @@ databases:
 envVarGroups:
   - name: yamag-settings
     envVars:
-      - key: DATABASE_URL
-        fromDatabase:
-          name: yamag-db
-          property: connectionString
       - key: TZ
-        value: Asia/Tokyo
         sync: false
       - key: RECORD_HOUR
-        value: 3
         sync: false
       - key: RECORD_MINUTE
-        value: 34
         sync: false
       - key: MATCHER
-        value: "(33-?4|:hanshin:)"
         sync: false
       - key: USER_NAME
-        value: "334_t"
         sync: false
       - key: POST_TITLE
-        value: "Today's 334 Top 10"
         sync: false
       - key: REMIND_POST_TEXT
-        value: "334観測中"
         sync: false
       - key: SERVER_ORIGIN
-        value: "https://misskey.io"
         sync: false
       - key: SERVER_TOKEN
-        value: "some_token_here(必ず設定してね)"
         sync: false
       - key: POST_DISABLED
-        value: "FALSE"
         sync: false
