@@ -41,7 +41,7 @@ databases:
   - name: db
     databaseName: yamag
     region: singapore
-    plan: free
+    plan: starter
     ipAllowList:
       - source: 0.0.0.0/0
         description: everywhere
