@@ -3,7 +3,7 @@ services:
     name: yamag-note
     runtime: node
     schedule: "35 18 * * *"
-    region: singapole
+    region: singapore
     repo: https://github.com/taichanne30/yamag.git
     buildCommand: "bash build-script.sh"
     startCommand: "pnpm start"
@@ -17,7 +17,7 @@ services:
     name: yamag-remind
     runtime: node
     schedule: "32 18 * * *"
-    region: singapole
+    region: singapore
     repo: https://github.com/taichanne30/yamag.git
     buildCommand: "bash build-script.sh"
     startCommand: "pnpm run remind"
@@ -26,7 +26,7 @@ services:
   - type: worker
     name: yamag-mention
     runtime: node
-    region: singapole
+    region: singapore
     repo: https://github.com/taichanne30/yamag.git
     buildCommand: "bash build-script.sh"
     startCommand: "pnpm run mention"
@@ -40,7 +40,7 @@ services:
 databases:
   - name: db
     databaseName: yamag
-    region: singapole
+    region: singapore
     plan: free
     ipAllowList:
       - source: 0.0.0.0/0
