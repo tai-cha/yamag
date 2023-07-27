@@ -12,7 +12,7 @@ services:
         fromDatabase:
           name: yamag-blueprint-db
           property: connectionString
-      - fromGroup: yamag-settings
+      - fromGroup: yamag-blueprint-settings
   - type: cron
     name: yamag-blueprint-remind
     runtime: node
@@ -22,7 +22,7 @@ services:
     buildCommand: "bash build-script.sh"
     startCommand: "pnpm run remind"
     envVars:
-      - fromGroup: yamag-settings
+      - fromGroup: yamag-blueprint-settings
   - type: worker
     name: yamag-blueprint-mention
     runtime: node
@@ -35,7 +35,7 @@ services:
         fromDatabase:
           name: yamag-blueprint-db
           property: connectionString
-      - fromGroup: yamag-settings
+      - fromGroup: yamag-blueprint-settings
 
 databases:
   - name: yamag-blueprint-db
@@ -47,7 +47,7 @@ databases:
         description: everywhere
 
 envVarGroups:
-  - name: yamag-settings
+  - name: yamag-blueprint-settings
     envVars:
       - key: TZ
         sync: false
