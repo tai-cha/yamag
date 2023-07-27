@@ -147,10 +147,14 @@ const getNotes = async ():Promise<Array<Note>> => {
             ['public', 'home'].includes(note.visibility) &&
             note.user.host === null
   })
+  console.log(`対象のノート: ${filteredNotes.length}件`)
   let ranking = createRanks(filteredNotes)
   let text = showRanking(ranking)
-  let post = await retry(async() => {
-    YAMAG.Misskey.postNote(text)
+  console.log("ランキング集計完了\n")
+  console.log(text)
+
+  await retry(async() => {
+    return await YAMAG.Misskey.postNote(text)
   }, {
     retries: 15,
     minTimeout: 5000,
@@ -158,8 +162,14 @@ const getNotes = async ():Promise<Array<Note>> => {
       console.log(`Retrying: note posting...${num}`)
       console.debug(err)
     }
+  }).then(async n => {
+    console.log('投稿完了')
+  }).catch(err => {
+    console.log("ノート投稿の失敗が既定の回数を超えました")
+    console.log(err)
   })
   if (Config.isDbEnabled()) {
     storeRanks(ranking)
+    console.log('DBに結果を保存しました')
   }
 })()
