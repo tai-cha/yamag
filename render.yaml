@@ -20,7 +20,7 @@ services:
     region: singapole
     repo: https://github.com/taichanne30/yamag.git
     buildCommand: "bash build-script.sh"
-    startCommand: "pnpm start"
+    startCommand: "pnpm run remind"
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -46,6 +46,9 @@ databases:
     databaseName: yamag
     region: singapole
     plan: free
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: everywhere
 
 envVarGroups:
   - name: yamag-settings
