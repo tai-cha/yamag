@@ -1,6 +1,6 @@
 services:
   - type: cron
-    name: yamag-note
+    name: yamag-blueprint-note
     runtime: node
     schedule: "35 18 * * *"
     region: singapore
@@ -10,11 +10,11 @@ services:
     envVars:
       - key: DATABASE_URL
         fromDatabase:
-          name: db
+          name: yamag-blueprint-db
           property: connectionString
       - fromGroup: yamag-settings
   - type: cron
-    name: yamag-remind
+    name: yamag-blueprint-remind
     runtime: node
     schedule: "32 18 * * *"
     region: singapore
@@ -24,7 +24,7 @@ services:
     envVars:
       - fromGroup: yamag-settings
   - type: worker
-    name: yamag-mention
+    name: yamag-blueprint-mention
     runtime: node
     region: singapore
     repo: https://github.com/taichanne30/yamag.git
@@ -33,12 +33,12 @@ services:
     envVars:
       - key: DATABASE_URL
         fromDatabase:
-          name: db
+          name: yamag-blueprint-db
           property: connectionString
       - fromGroup: yamag-settings
 
 databases:
-  - name: db
+  - name: yamag-blueprint-db
     databaseName: yamag
     region: singapore
     plan: starter
