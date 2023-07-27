@@ -1,0 +1,71 @@
+services:
+  - type: cron
+    name: yamag-blueprint-note
+    runtime: node
+    schedule: "35 18 * * *"
+    region: singapore
+    repo: https://github.com/taichanne30/yamag.git
+    buildCommand: "bash build-script.sh"
+    startCommand: "pnpm start"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: yamag-blueprint-db
+          property: connectionString
+      - fromGroup: yamag-blueprint-settings
+  - type: cron
+    name: yamag-blueprint-remind
+    runtime: node
+    schedule: "32 18 * * *"
+    region: singapore
+    repo: https://github.com/taichanne30/yamag.git
+    buildCommand: "bash build-script.sh"
+    startCommand: "pnpm run remind"
+    envVars:
+      - fromGroup: yamag-blueprint-settings
+  - type: worker
+    name: yamag-blueprint-mention
+    runtime: node
+    region: singapore
+    repo: https://github.com/taichanne30/yamag.git
+    buildCommand: "bash build-script.sh"
+    startCommand: "pnpm run mentions"
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: yamag-blueprint-db
+          property: connectionString
+      - fromGroup: yamag-blueprint-settings
+
+databases:
+  - name: yamag-blueprint-db
+    databaseName: yamag
+    region: singapore
+    plan: starter
+    ipAllowList:
+      - source: 0.0.0.0/0
+        description: everywhere
+
+envVarGroups:
+  - name: yamag-blueprint-settings
+    envVars:
+      - key: TZ
+        sync: false
+      - key: RECORD_HOUR
+        sync: false
+      - key: RECORD_MINUTE
+        sync: false
+      - key: MATCHER
+        sync: false
+      - key: USER_NAME
+        sync: false
+      - key: POST_TITLE
+        sync: false
+      - key: REMIND_POST_TEXT
+        sync: false
+      - key: SERVER_ORIGIN
+        sync: false
+      - key: SERVER_TOKEN
+        sync: false
+      - key: POST_DISABLED
+        sync: false
