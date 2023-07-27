@@ -9,6 +9,7 @@
 build-script.sh
 Dockerfile
 docker-compose.yml
+render.yml
 
 node_modules
 dist

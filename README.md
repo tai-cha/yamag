@@ -81,7 +81,7 @@ pnpm
 - default "334観測中"
 
 ### POST_DISABLED
-- 何か値を設定するとMisskeyにノートが投稿されなくなります
+- 値を`TRUE`に設定するとMisskeyにノートが投稿されなくなります
 - 手元で集計のみ行いたい場合等にお使いください
 
 ## etc..
@@ -98,6 +98,7 @@ pnpm
 ## Docker-Composeを用いた構築
 この方法ではデータベースも同時に用意可能です
 ### 公式イメージを用いる場合
+※こちらも参考にしてください( https://github.com/taichanNE30/yamag-docker-compose-example )
 1. 適当なディレクトリを作成します
 1. リポジトリ内のenv_templatesを参考に`.env.app`, `.env.db`を作成します
 1. 以下のdocker-compose.ymlを作成します
