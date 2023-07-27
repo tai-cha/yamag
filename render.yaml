@@ -29,7 +29,7 @@ services:
     region: singapore
     repo: https://github.com/taichanne30/yamag.git
     buildCommand: "bash build-script.sh"
-    startCommand: "pnpm run mention"
+    startCommand: "pnpm run mentions"
     envVars:
       - key: DATABASE_URL
         fromDatabase:
