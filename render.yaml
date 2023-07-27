@@ -17,7 +17,7 @@ services:
     name: yamag-remind
     runtime: node
     schedule: "32 18 * * *"
-    region: sigapole
+    region: singapole
     repo: https://github.com/taichanne30/yamag.git
     buildCommand: "bash build-script.sh"
     startCommand: "pnpm start"
@@ -30,7 +30,7 @@ services:
   - type: worker
     name: yamag-mention
     runtime: node
-    region: sigapole
+    region: singapole
     repo: https://github.com/taichanne30/yamag.git
     buildCommand: "bash build-script.sh"
     startCommand: "pnpm run mention"
