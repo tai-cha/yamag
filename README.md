@@ -46,7 +46,7 @@ pnpm
 - Misskeyから取得したAPIのトークン
 - 最低でもノートの作成・削除の権限は与えないと投稿が不可
 
-### DATABASE_URL
+### **DATABASE_URL**
 - PostgreSQLのURL
 - **返信機能を使うには必須**
 
@@ -83,6 +83,20 @@ pnpm
 ### POST_DISABLED
 - 値を`TRUE`に設定するとMisskeyにノートが投稿されなくなります
 - 手元で集計のみ行いたい場合等にお使いください
+
+### DISABLE_MENTION_AROUND_TIME
+- 値を`TRUE`に設定すると集計時刻の前後でのメンションに反応しないようにすることが可能です
+- default FALSE
+
+### DISABLE_MENTION_SEC_BEFORE
+- DISABLE_MENTION_AROUND_TIME と併用して使うオプションです
+- メンションに反応しない時間を設定する際に集計時刻の**何ミリ秒前から**反応しないかを設定可能です
+- default 60000
+
+### DISABLE_MENTION_SEC_AFTER
+- DISABLE_MENTION_AROUND_TIME と併用して使うオプションです
+- メンションに反応しない時間を設定する際に集計時刻の**何ミリ秒後まで**反応しないかを設定可能です
+- default 60000
 
 ## etc..
 - dotenv導入済みなのでローカルなどで試す場合は`.env`のファイルを用意して配置すれば設定変更可能

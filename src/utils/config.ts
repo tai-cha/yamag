@@ -18,6 +18,12 @@ export const userName = process.env?.USER_NAME || "334_t"
 export const matcher = process.env.MATCHER || /(33-?4|:hanshin:)/
 const DATABASE_URL = process.env.DATABASE_URL
 
+export const mention = {
+  disable_around_time: process.env?.DISABLE_MENTION_AROUND_TIME === 'TRUE',
+  disable_sec_before: parseInt(process.env.DISABLE_MENTION_SEC_BEFORE || '') || 60000,
+  disable_sec_after: parseInt(process.env.DISABLE_MENTION_SEC_AFTER || '') || 60000
+}
+
 export const server:Server = {
   origin: process.env?.SERVER_ORIGIN || "https://misskey.io",
   credential: process.env.SERVER_TOKEN || ''
@@ -25,4 +31,4 @@ export const server:Server = {
 
 export const isDbEnabled = ():boolean => !!DATABASE_URL
 
-export default {recordTime, postTitle, remindPostText, matcher, userName, server, isDbEnabled}
+export default {recordTime, postTitle, remindPostText, matcher, userName, server, isDbEnabled, mention}

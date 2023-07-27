@@ -66,6 +66,19 @@ const getStatics = async (u:Misskey.entities.User) => {
   const stream = new Misskey.Stream(Config.server.origin, { token: Config.server.credential }, { WebSocket })
   const mainChannel = stream.useChannel('main')
   mainChannel.on('mention', async note => {
+
+    // OPTION メンション抑制 レートリミットの影響を軽減可能
+    if (Config.mention.disable_around_time) {
+      const now = Date.now()
+      let [before, after] = [Config.mention.disable_sec_before, Config.mention.disable_sec_after]
+      // beforeより後,afterより前の場合,スキップ
+      if ((Config.recordTime.getTime() - before) < now && now < (Config.recordTime.getTime() - after) ) {
+        // NOTE: リアクション送ろうとも思ったけど反応したら結局レートリミット引っかかるじゃん
+        // 集計開始ノートで告知すればよくない？
+        return // await YAMAG.Misskey.request('notes/reactions/create', { noteId: note.id, reaction: "😥" })
+      }
+    }
+
     if (isUserDetailed(note.user) && note.user?.isBot === false) {
       if (note.userId === note.reply?.userId) {
         if(note.reply?.text?.match(Config.matcher)) {
