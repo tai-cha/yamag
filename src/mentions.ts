@@ -72,7 +72,7 @@ const getStatics = async (u:Misskey.entities.User) => {
       const now = Date.now()
       let [before, after] = [Config.mention.disable_sec_before, Config.mention.disable_sec_after]
       // beforeより後,afterより前の場合,スキップ
-      if ((Config.recordTime.getTime() - before) < now && now < (Config.recordTime.getTime() - after) ) {
+      if ((Config.recordTime.getTime() - before) < now && now < (Config.recordTime.getTime() + after) ) {
         // NOTE: リアクション送ろうとも思ったけど反応したら結局レートリミット引っかかるじゃん
         // 集計開始ノートで告知すればよくない？
         return // await YAMAG.Misskey.request('notes/reactions/create', { noteId: note.id, reaction: "😥" })
