@@ -4,7 +4,7 @@ import { recordTime, remindPostText } from '@/utils/config'
 const getTimeDiff = ():number => {
   let target = recordTime
 
-  if (target.getDate() < new Date().getDate()) {
+  if (target.getTime() < new Date().getTime()) {
     target.setDate(target.getDate() + 1)
   }
 
