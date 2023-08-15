@@ -144,7 +144,7 @@ const getNotes = async ():Promise<Array<Note>> => {
   let recordedNotes = notes.filter(note => note.text?.match(regexp))
   let filteredNotes = recordedNotes.filter(note => {
     return !['334', Config.userName].includes(note.user.username) &&
-            ['public', 'home'].includes(note.visibility) &&
+            ['public', 'relational' , 'home'].includes(note.visibility) &&
             note.user.host === null
   })
   console.log(`対象のノート: ${filteredNotes.length}件`)
