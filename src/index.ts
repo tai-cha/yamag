@@ -1,5 +1,5 @@
 import YAMAG from '@/utils/misskey'
-import { Note, Record } from '@/@types'
+import { Note, Record, TimelineOptions } from '@/@types'
 import { RankElement, usernameWithHost, isRecordInRange } from '@/utils'
 import Config from '@/utils/config'
 import { Constants } from '@/utils/constants'
@@ -90,7 +90,7 @@ const getNotes = async ():Promise<Array<Note>> => {
 const getNotesUsingSince = async ():Promise<Array<Note>> => {
   const since = Config.recordTime.getTime() - (60 * 1000)
   const until = Config.recordTime.getTime() + (60 * 1000)
-  const options = {
+  const options: TimelineOptions = {
     excludeNsfw: false,
     limit: 100,
     sinceDate: since
