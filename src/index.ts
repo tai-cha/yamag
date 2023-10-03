@@ -1,5 +1,5 @@
 import YAMAG from '@/utils/misskey'
-import { Note, Record } from '@/@types'
+import { Note, Record, TimelineOptions } from '@/@types'
 import { RankElement, usernameWithHost, isRecordInRange } from '@/utils'
 import Config from '@/utils/config'
 import { Constants } from '@/utils/constants'
@@ -77,12 +77,20 @@ const raiseOmittedTimeline = (notes:Note[]) => {
   }
 }
 
+const getFirstNote = (notes:Array<Note>) => notes[0];
 const getLastNote = (notes:Array<Note>) => notes.slice(-1)[0];
 
 const getNotes = async ():Promise<Array<Note>> => {
+  // EXPERIMENTAL_EXPERIMENTAL_USE_UNTILが有効時のみuntilを利用してTL取得
+  if (Config.Experimental.useUntil) return getNotesUsingUntil()
+
+  return getNotesUsingSince()
+}
+
+const getNotesUsingSince = async ():Promise<Array<Note>> => {
   const since = Config.recordTime.getTime() - (60 * 1000)
   const until = Config.recordTime.getTime() + (60 * 1000)
-  const options = {
+  const options: TimelineOptions = {
     excludeNsfw: false,
     limit: 100,
     sinceDate: since
@@ -135,6 +143,67 @@ const getNotes = async ():Promise<Array<Note>> => {
   return notes
 }
 
+// Experimental: UntilDate, UntilIdを用いてTLを取得する 
+const getNotesUsingUntil = async ():Promise<Array<Note>> => {
+  const since = Config.recordTime.getTime() - (60 * 1000)
+  const until = Config.recordTime.getTime() + (60 * 1000)
+  const options = {
+    excludeNsfw: false,
+    limit: 100,
+    untilDate: until
+  }
+  console.log('loading notes...')
+  let notes = await retry(
+    async ()=> {
+      console.log(`Getting latest notes (1 minute previous)`)
+      const req = await YAMAG.Misskey.request('notes/hybrid-timeline', options)
+
+      raiseOmittedTimeline(req)
+
+      return req
+    },
+    {
+      retries: NOTE_GET_RETRY_COUNT,
+      minTimeout: 5000,
+      onRetry: (err, num)=> {
+        console.log(`get note retrying...${num}`)
+        console.debug(err)
+      }
+    }
+  )
+  notes = notes.reverse()
+
+  if (notes.length === 0) return []
+
+  while (new Date(getFirstNote(notes).createdAt).getTime() > since) {
+    console.log(`since: ${since}`)
+    console.log(`now last: ${new Date(getFirstNote(notes).createdAt).getTime()}`)
+    const oldNotes = await retry(async ()=> {
+        console.log(`Getting notes: {untilId: ${getFirstNote(notes).id}}`)
+        const req = await YAMAG.Misskey.request('notes/hybrid-timeline', {
+          untilId: getFirstNote(notes).id,
+          ...options
+        })
+
+        raiseOmittedTimeline(req)
+
+        return req
+      }, {
+        retries: NOTE_GET_RETRY_COUNT,
+        minTimeout: 5000,
+        onRetry: (err, num)=> {
+          console.log(`get note retrying...${num}`)
+          console.debug(err)
+        }
+      }
+    )
+    notes = oldNotes.reverse().concat(notes)
+    console.log(notes.length)
+    await new Promise((resolve) => setTimeout(resolve, 500))
+  }
+  return notes
+}
+
 (async ()=>{
   console.log("getNotes start")
   notes = await getNotes()
@@ -145,6 +214,7 @@ const getNotes = async ():Promise<Array<Note>> => {
   let filteredNotes = recordedNotes.filter(note => {
     return !['334', Config.userName].includes(note.user.username) &&
             ['public', 'relational' , 'home'].includes(note.visibility) &&
+            [null, undefined].includes(note?.updatedAt) &&
             note.user.host === null
   })
   console.log(`対象のノート: ${filteredNotes.length}件`)
@@ -163,7 +233,7 @@ const getNotes = async ():Promise<Array<Note>> => {
       console.debug(err)
     }
   }).then(async n => {
-    console.log('投稿完了')
+    console.log('投稿の処理まで完了')
   }).catch(err => {
     console.log("ノート投稿の失敗が既定の回数を超えました")
     console.log(err)
