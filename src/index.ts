@@ -82,9 +82,9 @@ const getLastNote = (notes:Array<Note>) => notes.slice(-1)[0];
 
 const getNotes = async ():Promise<Array<Note>> => {
   // EXPERIMENTAL_EXPERIMENTAL_USE_UNTILが有効時のみuntilを利用してTL取得
-  if (Config.Experimental.useUntil) return getNotesUsingSince()
+  if (Config.Experimental.useUntil) return getNotesUsingUntil()
 
-  return getNotesUsingUntil()
+  return getNotesUsingSince()
 }
 
 const getNotesUsingSince = async ():Promise<Array<Note>> => {
