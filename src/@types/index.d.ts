@@ -1,4 +1,4 @@
-import { entities } from "misskey-js"
+import { entities, Endpoints } from "misskey-js"
 
 export type Server = {
   origin: string
@@ -18,4 +18,8 @@ export type RankElement = {
   userId: string,
   rank: number,
   noteId: string
+}
+
+export type TimelineOptions = Endpoints['notes/hybrid-timeline']['req'] & {
+  excludeNsfw?: boolean
 }

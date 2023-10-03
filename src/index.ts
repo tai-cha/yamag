@@ -1,5 +1,5 @@
 import YAMAG from '@/utils/misskey'
-import { Note, Record } from '@/@types'
+import { Note, Record, TimelineOptions } from '@/@types'
 import { RankElement, usernameWithHost, isRecordInRange } from '@/utils'
 import Config from '@/utils/config'
 import { Constants } from '@/utils/constants'
@@ -7,6 +7,7 @@ import retry from 'async-retry'
 import { PrismaClient } from '@prisma/client'
 
 const NOTE_GET_RETRY_COUNT = 15
+const GETTING_NOTES_SERIES = process.env?.GET_UNTIL_BASE ? 'untilId' : 'sinceId'
 
 let notes: Array<Note> = []
 
@@ -79,13 +80,27 @@ const raiseOmittedTimeline = (notes:Note[]) => {
 
 const getLastNote = (notes:Array<Note>) => notes.slice(-1)[0];
 
+const timeCompare = (time: number, since: number, until: number): boolean => {
+  if (process.env?.GET_UNTIL_BASE) {
+    return time > since
+  }
+  else {
+    return time < until
+  }
+}
+
 const getNotes = async ():Promise<Array<Note>> => {
   const since = Config.recordTime.getTime() - (60 * 1000)
   const until = Config.recordTime.getTime() + (60 * 1000)
-  const options = {
+  const options: TimelineOptions = {
     excludeNsfw: false,
     limit: 100,
-    sinceDate: since
+  }
+  if (process.env?.GET_UNTIL_BASE) {
+    options.untilDate = until
+  }
+  else {
+    options.sinceDate = since
   }
   console.log('loading notes...')
   let notes = await retry(
@@ -108,11 +123,17 @@ const getNotes = async ():Promise<Array<Note>> => {
   )
   if (notes.length === 0) return []
 
-  while (new Date(getLastNote(notes).createdAt).getTime() < until) {
-    const newNotes = await retry(async ()=> {
-        console.log(`Getting notes: {sinceId: ${getLastNote(notes).id}}`)
+  while (timeCompare(new Date(getLastNote(notes).createdAt).getTime(), since, until)) {
+    const newNotes = await retry(async () => {
+        const seriesOptions: TimelineOptions =
+          process.env?.GET_UNTIL_BASE ? {
+            untilId: getLastNote(notes).id
+          } : {
+            sinceId: getLastNote(notes).id
+          }
+        console.log(`Getting notes: {${GETTING_NOTES_SERIES}: ${seriesOptions[GETTING_NOTES_SERIES]}}`)
         const req = await YAMAG.Misskey.request('notes/hybrid-timeline', {
-          sinceId: getLastNote(notes).id,
+          ...seriesOptions,
           ...options
         })
 
@@ -132,7 +153,8 @@ const getNotes = async ():Promise<Array<Note>> => {
     console.log(notes.length)
     await new Promise((resolve) => setTimeout(resolve, 500))
   }
-  return notes
+  if (process.env?.GET_UNTIL_BASE) notes.sort((a, b) => a.id > b.id ? 1 : -1)
+  return notes.filter(note => timeCompare(new Date(note.createdAt).getTime(), since, until))
 }
 
 (async ()=>{
