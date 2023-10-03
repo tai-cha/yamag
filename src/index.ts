@@ -145,6 +145,7 @@ const getNotes = async ():Promise<Array<Note>> => {
   let filteredNotes = recordedNotes.filter(note => {
     return !['334', Config.userName].includes(note.user.username) &&
             ['public', 'relational' , 'home'].includes(note.visibility) &&
+           ![null, undefined].includes(note?.updatedAt) &&
             note.user.host === null
   })
   console.log(`対象のノート: ${filteredNotes.length}件`)

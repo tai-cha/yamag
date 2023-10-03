@@ -5,7 +5,9 @@ export type Server = {
   credential: string
 }
 
-export type Note = entities.Note
+export type Note = entities.note & {
+  updatedAt?: Date | null
+}
 
 export type Record = {
   note: Note,
