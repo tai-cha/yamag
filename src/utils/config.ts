@@ -14,7 +14,7 @@ export const recordTime = (() => {
   let target = new Date(today.getFullYear(), today.getMonth(), today.getDate(), recordTimeHour, recordTimeMinute, 0, 0)
   const todayMidnight = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0)
   // 一日前 = 86_400_000秒前
-  if (target.getTime() - todayMidnight.getTime()) target = new Date(target.getTime() - 86_400_000)
+  if (target.getTime() - todayMidnight.getTime() < 0) target = new Date(target.getTime() - 86_400_000)
   return target
 })()
 
