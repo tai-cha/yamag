@@ -1,6 +1,6 @@
 {
   "name": "yamag",
-  "version": "1.1.0-beta.2",
+  "version": "1.1.0-beta.3",
   "description": "Yet Another Misskey Accuracy Game app",
   "main": "index.js",
   "scripts": {
